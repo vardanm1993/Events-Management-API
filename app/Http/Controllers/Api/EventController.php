@@ -6,19 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Event\StoreEventRequest;
 use App\Http\Requests\Event\UpdateEventRequest;
 use App\Http\Resources\EventResource;
+use App\Http\Traits\CanLoadRelationships;
 use App\Models\Event;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 class EventController extends Controller
 {
+    use CanLoadRelationships;
+
+    private array $relations = ['user', 'attendees', 'attendees.user'];
+
     /**
      * Display a listing of the resource.
      */
     public function index(): AnonymousResourceCollection
     {
-       return EventResource::collection(
-            Event::with('user')->paginate()
+
+        $query = $this->loadRelationships(Event::query());
+
+        return EventResource::collection(
+            $query->latest()->paginate()
         );
     }
 
@@ -27,12 +35,12 @@ class EventController extends Controller
      */
     public function store(StoreEventRequest $request): EventResource
     {
-        return new EventResource(
-            Event::create([
-                ...$request->validated(),
-                'user_id' => 1
-            ])
-        );
+        $event = Event::create([
+            ...$request->validated(),
+            'user_id' => 1
+        ]);
+
+        return new EventResource($this->loadRelationships($event));
     }
 
     /**
@@ -40,8 +48,7 @@ class EventController extends Controller
      */
     public function show(Event $event): EventResource
     {
-        $event->load('user','attendees');
-        return new EventResource($event);
+        return new EventResource($this->loadRelationships($event));
     }
 
     /**
@@ -51,7 +58,7 @@ class EventController extends Controller
     {
         $event->update($request->validated());
 
-        return new EventResource($event);
+        return new EventResource($this->loadRelationships($event));
     }
 
     /**
@@ -61,6 +68,6 @@ class EventController extends Controller
     {
         $event->delete();
 
-        return response(status: 204);
+        return response()->noContent();
     }
 }
