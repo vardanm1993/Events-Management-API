@@ -17,7 +17,9 @@ class EventController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        return EventResource::collection(Event::with('user')->get());
+       return EventResource::collection(
+            Event::with('user')->paginate()
+        );
     }
 
     /**
