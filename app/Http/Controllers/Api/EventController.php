@@ -22,6 +22,7 @@ class EventController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum')->except(['index','show']);
+        $this->authorizeResource(Event::class,'event');
     }
 
     /**
@@ -60,11 +61,9 @@ class EventController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * @throws AuthorizationException
      */
     public function update(UpdateEventRequest $request, Event $event): EventResource
     {
-        $this->authorize('update-event', $event);
         $event->update($request->validated());
 
         return new EventResource($this->loadRelationships($event));
