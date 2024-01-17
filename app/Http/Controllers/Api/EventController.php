@@ -8,8 +8,10 @@ use App\Http\Requests\Event\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use App\Http\Traits\CanLoadRelationships;
 use App\Models\Event;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
@@ -21,7 +23,6 @@ class EventController extends Controller
     {
         $this->middleware('auth:sanctum')->except(['index','show']);
     }
-
 
     /**
      * Display a listing of the resource.
@@ -59,9 +60,11 @@ class EventController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * @throws AuthorizationException
      */
     public function update(UpdateEventRequest $request, Event $event): EventResource
     {
+        $this->authorize('update-event', $event);
         $event->update($request->validated());
 
         return new EventResource($this->loadRelationships($event));
