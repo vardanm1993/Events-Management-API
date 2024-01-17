@@ -19,7 +19,7 @@ class AttendeeController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['index','show']);
+        $this->middleware('auth:sanctum')->except(['index', 'show', 'update']);
     }
 
     /**
@@ -63,8 +63,9 @@ class AttendeeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $event, Attendee $attendee): Response
+    public function destroy(Event $event, Attendee $attendee): Response
     {
+        $this->authorize('delete-attendee', [$event, $attendee]);
         $attendee->delete();
 
         return response()->noContent();
